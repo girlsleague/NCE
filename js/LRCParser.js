@@ -33,7 +33,7 @@ export class LRCParser {
       }
 
       // 匹配 LRC 时间标签: [mm:ss.xx] 或 [mm:ss.xxx]
-      // 支持格式: [00:12.34]Content | [1:30.50]Content
+      // 支持格式: [00:12.34]Content | [1:30.500]Content
       const match = line.match(/\[(\d{1,2}):(\d{2})\.(\d{2,3})\](.+)/);
       if (!match) {
         continue;
@@ -42,7 +42,7 @@ export class LRCParser {
       try {
         const minutes = parseInt(match[1], 10);
         const seconds = parseInt(match[2], 10);
-        const milliseconds = parseInt(match[3], 10);
+        const milliseconds = parseInt(match[3].padEnd(3, '0'), 10);
 
         // 确保秒数在有效范围内
         if (seconds > 59) continue;
