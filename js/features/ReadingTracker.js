@@ -3,8 +3,8 @@
  * 记录每篇课文的跟读次数，提供进度可视化和演讲考核功能
  *
  * 核心功能：
- * 1. 跟读打卡 - 每完成一次跟读可打卡记录
- * 2. 进度追踪 - 环形进度条 + 里程碑可视化
+ * 1. 跟读打卡 - 读完课文后，在最后一行打卡
+ * 2. 进度追踪 - 控制面板显示紧凑进度，歌词底部打卡
  * 3. 演讲考核 - 跟读60遍后解锁演讲考核
  *
  * @module features/ReadingTracker
@@ -37,17 +37,16 @@ export class ReadingTracker {
 
     // DOM 元素
     this.dom = {
-      panel: null,
-      countText: null,
-      progressRing: null,
-      progressFill: null,
-      progressText: null,
+      badge: null,          // 控制面板中的紧凑进度徽章
+      badgeCount: null,
+      checkinRow: null,     // 歌词底部的打卡行
       checkinBtn: null,
-      milestoneBadge: null,
+      checkinProgress: null,
       speechBtn: null,
       speechModal: null,
       speechModalClose: null,
       speechForm: null,
+      lyricsDisplay: null,  // 缓存歌词容器引用
     };
 
     // 初始化标记
@@ -73,71 +72,39 @@ export class ReadingTracker {
   // =========================================================================
 
   /**
-   * 构建精读百遍面板 UI
+   * 构建精简 UI：控制面板进度徽章 + 歌词底部打卡行 + 演讲考核模态框
    */
   _buildUI() {
-    // 找到插入位置：control-panel 之后，lyrics-container 之前
-    const controlPanel = qs('.control-panel');
-    const lyricsContainer = qs('.lyrics-container');
-    const playerSection = qs('.player-section');
-    if (!controlPanel || !lyricsContainer || !playerSection) return;
+    // 1. 在控制面板添加紧凑进度徽章
+    this._addCompactProgress();
 
-    const panel = document.createElement('section');
-    panel.className = 'reading-tracker';
-    panel.setAttribute('aria-label', '精读百遍');
-    panel.innerHTML = `
-      <div class="tracker-header">
-        <span class="tracker-title">📖 精读百遍</span>
-        <span class="tracker-count" id="trackerCount">0 / ${this.TARGET}</span>
-      </div>
-      <div class="tracker-body">
-        <div class="tracker-progress-ring" id="trackerProgressRing">
-          <svg viewBox="0 0 120 120">
-            <circle class="ring-bg" cx="60" cy="60" r="52" />
-            <circle class="ring-fill" cx="60" cy="60" r="52"
-                    stroke-dasharray="326.73"
-                    stroke-dashoffset="326.73" />
-          </svg>
-          <div class="ring-text">
-            <span class="ring-number" id="trackerRingNumber">0</span>
-            <span class="ring-label">遍</span>
-          </div>
-        </div>
-        <div class="tracker-info">
-          <div class="tracker-milestone" id="trackerMilestone">
-            <span class="milestone-icon">🌱</span>
-            <span class="milestone-label">初识</span>
-          </div>
-          <div class="tracker-actions">
-            <button class="tracker-checkin-btn" id="trackerCheckinBtn" type="button">
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                <path d="M4 11L7 14L16 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              打卡跟读
-            </button>
-            <button class="tracker-speech-btn" id="trackerSpeechBtn" type="button" style="display:none">
-              🎤 演讲考核
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
+    // 2. 缓存歌词容器引用
+    this.dom.lyricsDisplay = document.querySelector('#lyricsDisplay');
 
-    // 插入到控制面板之后
-    controlPanel.parentNode.insertBefore(panel, lyricsContainer);
-
-    // 缓存 DOM 引用
-    this.dom.panel = panel;
-    this.dom.countText = panel.querySelector('#trackerCount');
-    this.dom.progressRing = panel.querySelector('#trackerProgressRing');
-    this.dom.progressFill = panel.querySelector('.ring-fill');
-    this.dom.ringNumber = panel.querySelector('#trackerRingNumber');
-    this.dom.checkinBtn = panel.querySelector('#trackerCheckinBtn');
-    this.dom.milestoneBadge = panel.querySelector('#trackerMilestone');
-    this.dom.speechBtn = panel.querySelector('#trackerSpeechBtn');
-
-    // 构建演讲考核模态框
+    // 3. 构建演讲考核模态框
     this._buildSpeechModal();
+  }
+
+  /**
+   * 在控制面板添加紧凑进度徽章
+   */
+  _addCompactProgress() {
+    const navBtns = document.querySelector('.navigation-buttons');
+    if (!navBtns) return;
+
+    const badge = document.createElement('span');
+    badge.className = 'tracker-badge';
+    badge.title = '精读百遍进度';
+    badge.innerHTML = `
+      <span class="badge-icon">📖</span>
+      <span class="badge-count" id="badgeCount">0/${this.TARGET}</span>
+      <span class="badge-mile" id="badgeMile">🌱</span>
+    `;
+    navBtns.appendChild(badge);
+
+    this.dom.badge = badge;
+    this.dom.badgeCount = badge.querySelector('#badgeCount');
+    this.dom.badgeMile = badge.querySelector('#badgeMile');
   }
 
   /**
@@ -145,7 +112,7 @@ export class ReadingTracker {
    */
   _buildSpeechModal() {
     const modal = document.createElement('div');
-    modal.className = 'speech-modal';
+    modal.className = 'speech-modal speech-modal-hidden';
     modal.id = 'speechModal';
     modal.setAttribute('aria-hidden', 'true');
     modal.setAttribute('role', 'dialog');
@@ -216,23 +183,84 @@ export class ReadingTracker {
   }
 
   // =========================================================================
+  // 歌词底部打卡行注入
+  // =========================================================================
+
+  /**
+   * 在歌词底部注入打卡行
+   */
+  _injectCheckinRow() {
+    const container = document.querySelector('#lyricsDisplay');
+    if (!container) return;
+
+    // 移除旧的打卡行
+    const old = container.querySelector('.tracker-checkin-row');
+    if (old) old.remove();
+
+    const { readCount, speechDone } = this.current;
+    const pct = Math.min(readCount / this.TARGET, 1);
+
+    const row = document.createElement('div');
+    row.className = 'tracker-checkin-row';
+
+    // 左侧：迷你进度条 + 次数
+    row.innerHTML = `
+      <div class="checkin-progress">
+        <div class="checkin-bar-bg">
+          <div class="checkin-bar-fill" style="width:${pct * 100}%"></div>
+        </div>
+        <span class="checkin-text" id="checkinText">已跟读 <strong>${readCount}</strong> / ${this.TARGET} 遍</span>
+      </div>
+      <div class="checkin-actions">
+        <button class="checkin-btn" id="checkinBtn" type="button">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+            <path d="M4 11L7 14L16 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          ${readCount >= this.TARGET ? '🏆 已达百遍' : '打卡跟读'}
+        </button>
+        <button class="checkin-speech-btn" id="checkinSpeechBtn" type="button"
+                style="${readCount >= this.SPEECH_THRESHOLD && !speechDone ? '' : 'display:none'}">
+          🎤 演讲考核
+        </button>
+        <button class="checkin-speech-btn completed" id="checkinSpeechDone" type="button"
+                style="${speechDone ? '' : 'display:none'}" disabled>
+          ✅ 考核已通过
+        </button>
+      </div>
+    `;
+
+    container.appendChild(row);
+
+    // 更新 DOM 引用
+    this.dom.checkinRow = row;
+    this.dom.checkinBtn = row.querySelector('#checkinBtn');
+    this.dom.checkinProgress = row.querySelector('.checkin-bar-fill');
+    this.dom.checkinText = row.querySelector('#checkinText');
+
+    // 绑定按钮事件（重新绑定，因为 DOM 被重建了）
+    const speechBtn = row.querySelector('#checkinSpeechBtn');
+    const speechDoneBtn = row.querySelector('#checkinSpeechDone');
+    if (this.dom.speechBtn) this.dom.speechBtn = null;
+
+    // 打卡按钮
+    if (this.dom.checkinBtn) {
+      on(this.dom.checkinBtn, 'click', () => this._handleCheckin());
+    }
+
+    // 演讲考核按钮
+    if (speechBtn) {
+      on(speechBtn, 'click', () => this._openSpeechModal());
+    }
+  }
+
+  // =========================================================================
   // 事件绑定
   // =========================================================================
 
   /**
-   * 绑定所有事件
+   * 绑定全局事件
    */
   _bindEvents() {
-    if (!this.dom.checkinBtn) return;
-
-    // 打卡按钮
-    on(this.dom.checkinBtn, 'click', () => this._handleCheckin());
-
-    // 演讲考核按钮
-    if (this.dom.speechBtn) {
-      on(this.dom.speechBtn, 'click', () => this._openSpeechModal());
-    }
-
     // 演讲考核关闭按钮
     if (this.dom.speechModalClose) {
       on(this.dom.speechModalClose, 'click', () => this._closeSpeechModal());
@@ -255,17 +283,25 @@ export class ReadingTracker {
       this._loadUnitProgress(bookKey, currentUnitIndex);
     }
 
-    // 监听单元切换
-    // 由于 ReadingSystem 没有提供事件系统，我们通过拦截 loadUnitByIndex 来实现
-    const originalLoadUnit = this.rs.loadUnitByIndex.bind(this.rs);
     const self = this;
+
+    // 拦截 loadUnitByIndex — 监听单元切换
+    const originalLoadUnit = this.rs.loadUnitByIndex.bind(this.rs);
     this.rs.loadUnitByIndex = function (unitIndex, options) {
       const result = originalLoadUnit(unitIndex, options);
-      // 延迟一帧等待 UI 更新完毕
       requestAnimationFrame(() => {
         self._loadUnitProgress(this.state.bookKey, unitIndex);
       });
       return result;
+    };
+
+    // 拦截 renderLyrics — 在歌词渲染后注入打卡行
+    const originalRenderLyrics = this.rs.renderLyrics.bind(this.rs);
+    this.rs.renderLyrics = function () {
+      originalRenderLyrics();
+      requestAnimationFrame(() => {
+        self._injectCheckinRow();
+      });
     };
   }
 
@@ -275,9 +311,6 @@ export class ReadingTracker {
 
   /**
    * 获取存储键
-   * @param {string} bookKey
-   * @param {number} unitIndex
-   * @returns {string}
    */
   _storageKey(bookKey, unitIndex) {
     return `${bookKey}/unit_${unitIndex}`;
@@ -285,8 +318,6 @@ export class ReadingTracker {
 
   /**
    * 加载指定单元的进度
-   * @param {string} bookKey
-   * @param {number} unitIndex
    */
   _loadUnitProgress(bookKey, unitIndex) {
     if (!bookKey || unitIndex < 0) return;
@@ -321,7 +352,6 @@ export class ReadingTracker {
 
   /**
    * 获取所有有进度数据的课堂列表
-   * @returns {Array<{bookKey: string, unitIndex: number, readCount: number, speechDone: boolean}>}
    */
   getAllProgress() {
     const results = [];
@@ -340,9 +370,7 @@ export class ReadingTracker {
                 speechDone: !!data.speechDone,
               });
             }
-          } catch (e) {
-            // 忽略解析失败项
-          }
+          } catch (e) { /* ignore */ }
         }
       }
     } catch (e) {
@@ -361,7 +389,6 @@ export class ReadingTracker {
   _handleCheckin() {
     if (!this.current.bookKey || this.current.unitIndex < 0) return;
 
-    // 已达目标
     if (this.current.readCount >= this.TARGET) {
       this._showToast('🎉 已达百遍目标！太棒了！', 'success');
       return;
@@ -371,13 +398,11 @@ export class ReadingTracker {
     this._saveProgress();
     this._updateUI();
 
-    // 检查是否触发里程碑
+    // 检查里程碑
     const milestone = this._getMilestone(this.current.readCount);
-
     if (milestone) {
       this._showToast(`${milestone.icon} ${milestone.label}！${milestone.message}`, 'milestone');
     } else {
-      // 随机鼓励语
       const messages = this.config.CHEER_MESSAGES;
       const msg = messages[Math.floor(Math.random() * messages.length)];
       this._showToast(`✅ ${msg}`, 'normal');
@@ -388,30 +413,18 @@ export class ReadingTracker {
   // 演讲考核
   // =========================================================================
 
-  /**
-   * 打开演讲考核模态框
-   */
   _openSpeechModal() {
     if (!this.dom.speechModal) return;
-
-    // 设置当前次数显示
     if (this.dom.speechCountDisplay) {
       setText(this.dom.speechCountDisplay, this.current.readCount);
     }
-
-    // 重置表单
-    if (this.dom.speechForm) {
-      this.dom.speechForm.reset();
-    }
+    if (this.dom.speechForm) this.dom.speechForm.reset();
 
     this.dom.speechModal.classList.remove('speech-modal-hidden');
     this.dom.speechModal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
   }
 
-  /**
-   * 关闭演讲考核模态框
-   */
   _closeSpeechModal() {
     if (!this.dom.speechModal) return;
     this.dom.speechModal.classList.add('speech-modal-hidden');
@@ -419,22 +432,15 @@ export class ReadingTracker {
     document.body.style.overflow = '';
   }
 
-  /**
-   * 处理演讲考核提交
-   * @param {Event} e
-   */
   _handleSpeechSubmit(e) {
     e.preventDefault();
 
-    const form = e.target;
-    const selected = form.querySelector('input[name="speechResult"]:checked');
+    const selected = e.target.querySelector('input[name="speechResult"]:checked');
     if (!selected) return;
 
-    // 记录考核完成
     this.current.speechDone = true;
     this._saveProgress();
     this._updateUI();
-
     this._closeSpeechModal();
 
     const labels = {
@@ -442,109 +448,74 @@ export class ReadingTracker {
       good: '👍 良好！',
       passable: '💪 继续加油！',
     };
-    const label = labels[selected.value] || '考核完成！';
-
-    this._showToast(`🎤 ${label} 考核已记录`, 'success');
+    this._showToast(`🎤 ${labels[selected.value] || '考核完成！'} 考核已记录`, 'success');
   }
 
   // =========================================================================
   // UI 更新
   // =========================================================================
 
-  /**
-   * 更新所有 UI 元素
-   */
   _updateUI() {
     const { readCount, speechDone } = this.current;
     const pct = Math.min(readCount / this.TARGET, 1);
 
-    // 更新计数文字
-    if (this.dom.countText) {
-      setText(this.dom.countText, `${readCount} / ${this.TARGET}`);
+    // 更新控制面板进度徽章
+    if (this.dom.badgeCount) {
+      setText(this.dom.badgeCount, `${readCount}/${this.TARGET}`);
     }
-
-    // 更新环形进度
-    if (this.dom.progressFill) {
-      const circumference = 326.73; // 2 * π * 52
-      const offset = circumference * (1 - pct);
-      this.dom.progressFill.style.strokeDashoffset = offset;
-    }
-
-    // 更新环中数字
-    if (this.dom.ringNumber) {
-      setText(this.dom.ringNumber, readCount);
-    }
-
-    // 更新里程碑徽章
-    if (this.dom.milestoneBadge) {
+    if (this.dom.badgeMile) {
       const milestone = this._getMilestone(readCount);
-      if (milestone) {
-        const icon = this.dom.milestoneBadge.querySelector('.milestone-icon');
-        const label = this.dom.milestoneBadge.querySelector('.milestone-label');
-        if (icon) setText(icon, milestone.icon);
-        if (label) setText(label, milestone.label);
-      }
+      setText(this.dom.badgeMile, milestone ? milestone.icon : '🌱');
     }
 
-    // 更新打卡按钮状态
-    if (this.dom.checkinBtn) {
-      if (readCount >= this.TARGET) {
-        this.dom.checkinBtn.disabled = true;
-        setText(this.dom.checkinBtn, '🏆 已达百遍');
-        addClass(this.dom.checkinBtn, 'completed');
-      } else {
-        this.dom.checkinBtn.disabled = false;
-        this.dom.checkinBtn.innerHTML = `
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-            <path d="M4 11L7 14L16 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          打卡跟读
-        `;
-        removeClass(this.dom.checkinBtn, 'completed');
+    // 更新歌词底部的打卡行
+    if (this.dom.checkinRow && this.dom.checkinRow.parentNode) {
+      // 迷你进度条
+      if (this.dom.checkinProgress) {
+        this.dom.checkinProgress.style.width = `${pct * 100}%`;
+      }
+      // 文字
+      if (this.dom.checkinText) {
+        this.dom.checkinText.innerHTML = `已跟读 <strong>${readCount}</strong> / ${this.TARGET} 遍`;
+      }
+      // 按钮
+      if (this.dom.checkinBtn) {
+        if (readCount >= this.TARGET) {
+          this.dom.checkinBtn.disabled = true;
+          this.dom.checkinBtn.innerHTML = '🏆 已达百遍';
+          addClass(this.dom.checkinBtn, 'completed');
+        } else {
+          this.dom.checkinBtn.disabled = false;
+          this.dom.checkinBtn.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+              <path d="M4 11L7 14L16 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            打卡跟读
+          `;
+          removeClass(this.dom.checkinBtn, 'completed');
+        }
       }
 
-      // 冷却状态 — 防止连点（视觉提示，不强制禁用）
-      toggleClass(this.dom.checkinBtn, 'just-checked', false);
-    }
-
-    // 演讲考核按钮
-    if (this.dom.speechBtn) {
-      if (readCount >= this.SPEECH_THRESHOLD && !speechDone) {
-        this.dom.speechBtn.style.display = '';
-        this.dom.speechBtn.disabled = false;
-        setText(this.dom.speechBtn, '🎤 演讲考核');
-        removeClass(this.dom.speechBtn, 'completed');
-      } else if (speechDone) {
-        this.dom.speechBtn.style.display = '';
-        this.dom.speechBtn.disabled = true;
-        setText(this.dom.speechBtn, '✅ 考核已通过');
-        addClass(this.dom.speechBtn, 'completed');
-      } else {
-        this.dom.speechBtn.style.display = 'none';
+      // 演讲考核按钮
+      const speechBtn = this.dom.checkinRow.querySelector('#checkinSpeechBtn');
+      const speechDoneBtn = this.dom.checkinRow.querySelector('#checkinSpeechDone');
+      if (speechBtn) {
+        speechBtn.style.display = (readCount >= this.SPEECH_THRESHOLD && !speechDone) ? '' : 'none';
       }
-    }
-
-    // 面板动画 — 每次更新触发微闪
-    if (this.dom.panel) {
-      removeClass(this.dom.panel, 'tracker-updated');
-      // 强制 reflow
-      void this.dom.panel.offsetWidth;
-      addClass(this.dom.panel, 'tracker-updated');
+      if (speechDoneBtn) {
+        speechDoneBtn.style.display = speechDone ? '' : 'none';
+      }
     }
   }
 
   /**
    * 获取当前次数对应的里程碑
-   * @param {number} count
-   * @returns {{icon: string, label: string, message: string}|null}
    */
   _getMilestone(count) {
     const milestones = this.config.MILESTONES;
     const keys = Object.keys(milestones).map(Number).sort((a, b) => b - a);
     for (const key of keys) {
-      if (count >= key) {
-        return milestones[key];
-      }
+      if (count >= key) return milestones[key];
     }
     return null;
   }
@@ -553,13 +524,7 @@ export class ReadingTracker {
   // Toast 提示
   // =========================================================================
 
-  /**
-   * 显示 Toast 提示
-   * @param {string} message
-   * @param {'normal'|'milestone'|'success'} type
-   */
   _showToast(message, type = 'normal') {
-    // 移除旧 toast
     const old = qs('.tracker-toast');
     if (old) old.remove();
 
@@ -568,12 +533,8 @@ export class ReadingTracker {
     setText(toast, message);
     document.body.appendChild(toast);
 
-    // 入场
-    requestAnimationFrame(() => {
-      addClass(toast, 'tracker-toast-show');
-    });
+    requestAnimationFrame(() => addClass(toast, 'tracker-toast-show'));
 
-    // 离场
     setTimeout(() => {
       removeClass(toast, 'tracker-toast-show');
       setTimeout(() => toast.remove(), 400);
@@ -581,7 +542,7 @@ export class ReadingTracker {
   }
 
   /**
-   * 重置当前单元的进度（需要确认后调用）
+   * 重置当前单元的进度
    */
   resetCurrentProgress() {
     const { bookKey, unitIndex } = this.current;
@@ -596,7 +557,6 @@ export class ReadingTracker {
 
   /**
    * 获取当前单元读的遍数
-   * @returns {number}
    */
   getReadCount() {
     return this.current.readCount;
@@ -606,9 +566,9 @@ export class ReadingTracker {
    * 销毁清理
    */
   destroy() {
-    this.dom.panel?.remove();
+    this.dom.checkinRow?.remove();
+    this.dom.badge?.remove();
     this.dom.speechModal?.remove();
-    // 恢复原始方法
     if (this.rs && this._originalLoadUnit) {
       this.rs.loadUnitByIndex = this._originalLoadUnit;
     }

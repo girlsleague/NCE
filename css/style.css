@@ -128,9 +128,8 @@ img {
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  padding: calc(5px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right))
-    calc(5px + env(safe-area-inset-bottom)) calc(18px + env(safe-area-inset-left));
+  padding: calc(4px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right))
+    calc(4px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
 }
 
 @keyframes riseIn {
@@ -144,72 +143,21 @@ img {
   }
 }
 
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-5);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-strong);
-  background: var(--glass-strong);
-  box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(18px) saturate(130%);
-  -webkit-backdrop-filter: blur(18px) saturate(130%);
-  animation: riseIn 0.6s ease both;
-}
-
-.header-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.header-book-select {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
 
 .header-book-select .book-select {
   min-width: 220px;
 }
 
-.app-header h1 {
-  font-family: var(--font-display);
-  font-size: clamp(30px, 4vw, 58px);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.02;
+/* 紧凑型主题切换按钮 — 嵌入控制面板 */
+.theme-toggle-compact {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
 }
 
-.subtitle {
-  color: var(--ink-2);
-  font-size: clamp(12px, 1.3vw, 18px);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  font-family: var(--font-mono);
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 34px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--paper-3);
-  color: var(--ink-2);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+.theme-toggle-compact svg {
+  width: 16px;
+  height: 16px;
 }
 
 .theme-toggle {
@@ -265,13 +213,13 @@ body.dark-theme .moon-icon {
 
 .container {
   display: grid;
-  grid-template-columns: minmax(260px, 340px) 1fr;
+  grid-template-columns: minmax(240px, 310px) 1fr;
   grid-template-rows: minmax(0, 1fr);
   gap: var(--space-3);
   align-items: stretch;
   flex: 1 1 auto;
   min-height: 0;
-  height: auto;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -344,6 +292,20 @@ body.dark-theme .moon-icon {
   background: var(--accent-3);
   border-color: var(--accent-strong);
   box-shadow: inset 0 0 0 1px var(--accent-strong);
+  border-left: 4px solid var(--accent-1);
+}
+
+/* 色块高亮 激活句左侧彩色指示条 */
+.lyric-line.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--accent-1), var(--accent-2));
+  border-radius: 3px 0 0 3px;
+}
 }
 
 .unit-item h3 {
@@ -955,6 +917,19 @@ body.blur-translation .lyric-line:hover .lyric-text {
   background: var(--accent-3);
   border-color: var(--accent-strong);
   box-shadow: inset 0 0 0 1px var(--accent-strong);
+  border-left: 4px solid var(--accent-1);
+}
+
+/* 色块高亮 激活句左侧彩色指示条 */
+.lyric-line.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--accent-1), var(--accent-2));
+  border-radius: 3px 0 0 3px;
 }
 
 
@@ -1261,10 +1236,6 @@ body::-webkit-scrollbar-thumb:hover,
     flex-wrap: wrap;
   }
 
-  .header-actions {
-    gap: 8px;
-    margin-left: auto;
-  }
 
   .header-book-select {
     order: 3;
@@ -1275,14 +1246,7 @@ body::-webkit-scrollbar-thumb:hover,
     width: 100%;
   }
 
-  .app-header h1 {
-    font-size: 24px;
-    margin-bottom: 2px;
-  }
 
-  .subtitle {
-    font-size: 12px;
-  }
 
   .theme-toggle {
     width: 38px;
@@ -1440,157 +1404,107 @@ body::-webkit-scrollbar-thumb:hover,
 }
 
 /* =========================================================================
-   精读百遍 — Reading Tracker
+   精读百遍 — 控制面板进度徽章
    ========================================================================= */
 
-.reading-tracker {
-  margin: 6px 0;
-  padding: 12px 16px;
-  border-radius: 18px;
-  border: 1px solid var(--border);
-  background: linear-gradient(135deg, rgba(255,255,255,0.78), rgba(255,247,235,0.64));
-  box-shadow: var(--shadow-sm);
-  transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-  font-family: var(--font-sans);
-  flex-shrink: 0;
-}
-
-body.dark-theme .reading-tracker {
-  background: linear-gradient(135deg, rgba(28,35,42,0.88), rgba(23,30,36,0.78));
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-}
-
-.reading-tracker.tracker-updated {
-  border-color: var(--accent-1);
-  box-shadow: 0 0 0 2px var(--accent-3), var(--shadow-sm);
-}
-
-.tracker-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.tracker-title {
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ink-1);
-  letter-spacing: -0.01em;
-}
-
-.tracker-count {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-2);
-}
-
-.tracker-body {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.tracker-progress-ring {
-  flex-shrink: 0;
-  width: 64px;
-  height: 64px;
-  position: relative;
-}
-
-.tracker-progress-ring svg {
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
-.ring-bg {
-  fill: none;
-  stroke: var(--border);
-  stroke-width: 7;
-}
-
-.ring-fill {
-  fill: none;
-  stroke: var(--accent-1);
-  stroke-width: 7;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-body.dark-theme .ring-fill {
-  stroke: var(--accent-2);
-}
-
-.ring-text {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  line-height: 1.1;
-}
-
-.ring-number {
-  font-family: var(--font-mono);
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--ink-1);
-}
-
-.ring-label {
-  font-size: 10px;
-  color: var(--ink-3);
-  font-weight: 500;
-}
-
-.tracker-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.tracker-milestone {
+.tracker-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 10px;
+  height: 28px;
+  padding: 0 8px;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--accent-3), transparent);
-  border: 1px solid var(--accent-strong);
-  width: fit-content;
+  border: 1px solid var(--border);
+  background: var(--paper-3);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: default;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
 }
 
-.milestone-icon {
-  font-size: 14px;
-}
-
-.milestone-label {
+.tracker-badge .badge-icon {
   font-size: 12px;
-  font-weight: 650;
+}
+
+.tracker-badge .badge-count {
+  color: var(--ink-1);
+  font-weight: 700;
+}
+
+.tracker-badge .badge-mile {
+  font-size: 12px;
+}
+
+/* =========================================================================
+   精读百遍 — 歌词底部打卡行
+   ========================================================================= */
+
+.tracker-checkin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,247,235,0.4));
+  flex-wrap: wrap;
+}
+
+body.dark-theme .tracker-checkin-row {
+  background: linear-gradient(135deg, rgba(23,30,37,0.7), rgba(17,23,29,0.5));
+}
+
+.checkin-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 120px;
+}
+
+.checkin-bar-bg {
+  width: 60px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.checkin-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+  transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.checkin-text {
+  font-size: 12px;
+  color: var(--ink-2);
+  font-family: var(--font-sans);
+  white-space: nowrap;
+}
+
+.checkin-text strong {
   color: var(--accent-1);
+  font-weight: 700;
 }
 
-body.dark-theme .milestone-label {
-  color: var(--accent-2);
-}
-
-.tracker-actions {
+.checkin-actions {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
 }
 
-.tracker-checkin-btn {
+.checkin-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  height: 32px;
+  gap: 4px;
+  height: 30px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1px solid var(--accent-1);
@@ -1599,67 +1513,66 @@ body.dark-theme .milestone-label {
   font-size: 12px;
   font-weight: 650;
   cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
   flex-shrink: 0;
-  letter-spacing: 0.01em;
 }
 
-.tracker-checkin-btn:hover {
+.checkin-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 16px var(--accent-strong);
+  box-shadow: 0 6px 12px var(--accent-strong);
 }
 
-.tracker-checkin-btn:active {
+.checkin-btn:active {
   transform: scale(0.96);
 }
 
-.tracker-checkin-btn:disabled {
-  opacity: 0.7;
+.checkin-btn:disabled {
+  opacity: 0.65;
   cursor: default;
   transform: none !important;
   box-shadow: none !important;
 }
 
-.tracker-checkin-btn.completed {
+.checkin-btn.completed {
   background: var(--teal);
   border-color: var(--teal);
-  opacity: 0.85;
+  opacity: 0.8;
 }
 
-.tracker-checkin-btn svg {
+.checkin-btn svg {
   color: #fff;
   flex-shrink: 0;
 }
 
-.tracker-speech-btn {
+.checkin-speech-btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: 32px;
-  padding: 0 14px;
+  height: 30px;
+  padding: 0 12px;
   border-radius: 999px;
   border: 1px solid var(--teal);
   background: transparent;
   color: var(--teal);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 650;
   cursor: pointer;
-  transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
+  transition: transform 0.18s ease, background 0.18s ease;
   flex-shrink: 0;
 }
 
-.tracker-speech-btn:hover {
+.checkin-speech-btn:hover {
   background: var(--teal);
   color: #fff;
   transform: translateY(-1px);
 }
 
-.tracker-speech-btn:active {
+.checkin-speech-btn:active {
   transform: scale(0.96);
 }
 
-.tracker-speech-btn:disabled {
-  opacity: 0.6;
+.checkin-speech-btn:disabled {
+  opacity: 0.5;
   cursor: default;
   transform: none !important;
   background: transparent !important;
@@ -1667,11 +1580,11 @@ body.dark-theme .milestone-label {
   border-color: var(--border) !important;
 }
 
-.tracker-speech-btn.completed {
+.checkin-speech-btn.completed {
   background: var(--teal);
   color: #fff;
   border-color: var(--teal);
-  opacity: 0.8;
+  opacity: 0.75;
 }
 
 /* Toast 提示 */
@@ -1916,27 +1829,21 @@ body.dark-theme .tracker-toast {
 
 /* 移动端适配 */
 @media (max-width: 768px) {
-  .reading-tracker {
-    padding: 10px 12px;
-    margin: 4px 0;
+  .tracker-checkin-row {
+    padding: 8px 10px;
   }
 
-  .tracker-progress-ring {
-    width: 52px;
-    height: 52px;
+  .checkin-bar-bg {
+    width: 44px;
   }
 
-  .ring-number {
-    font-size: 15px;
+  .checkin-text {
+    font-size: 11px;
   }
 
-  .tracker-title {
-    font-size: 13px;
-  }
-
-  .tracker-checkin-btn,
-  .tracker-speech-btn {
-    height: 28px;
+  .checkin-btn,
+  .checkin-speech-btn {
+    height: 26px;
     padding: 0 10px;
     font-size: 11px;
   }
