@@ -411,8 +411,8 @@ export class ReadingSystem {
       .map(
         (lyric, index) =>
           `<div class="lyric-line" data-index="${index}" data-time="${lyric.time}" tabindex="0" role="button" aria-label="播放第 ${index + 1} 句">
-            <div class="lyric-text">${lyric.english}</div>
-            ${lyric.chinese ? `<div class="lyric-translation">${lyric.chinese}</div>` : ''}
+            <div class="lyric-en">${lyric.english}</div>
+            ${lyric.chinese ? `<div class="lyric-zh">${lyric.chinese}</div>` : ''}
           </div>`
       )
       .join('');

@@ -865,22 +865,22 @@ body.dark-theme .lyrics-container {
   transform: scale(0.98);
 }
 
-body.hide-translation .lyric-translation {
+body.hide-translation .lyric-zh {
   display: none;
 }
 
-body.hide-translation .lyric-text {
+body.hide-translation .lyric-en {
   font-size: 20px;
 }
 
-body.blur-translation .lyric-translation,
-body.blur-translation .lyric-text {
+body.blur-translation .lyric-zh,
+body.blur-translation .lyric-en {
   filter: blur(4px);
   opacity: 0.6;
 }
 
-body.blur-translation .lyric-line:hover .lyric-translation,
-body.blur-translation .lyric-line:hover .lyric-text {
+body.blur-translation .lyric-line:hover .lyric-zh,
+body.blur-translation .lyric-line:hover .lyric-en {
   filter: none;
   opacity: 1;
 }
@@ -894,14 +894,16 @@ body.blur-translation .lyric-line:hover .lyric-text {
 }
 
 .lyric-line {
-  padding: 5px 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 6px 12px;
   border-radius: 14px;
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
   background: transparent;
   border: 1px solid var(--border);
-  word-wrap: break-word;
-  overflow-wrap: break-word;
   position: relative;
   overflow: hidden;
 }
@@ -951,31 +953,40 @@ body.blur-translation .lyric-line:hover .lyric-text {
   /*animation: lyricPulse 0.4s ease;*/
 }
 
-.lyric-text {
+.lyric-en {
+  flex: 3;
+  min-width: 0;
   font-family: var(--font-display);
   font-size: 18px;
-  line-height: 1.35;
+  line-height: 1.45;
   font-weight: 650;
   color: var(--ink-1);
   letter-spacing: -0.018em;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
-.lyric-line.active .lyric-text {
+.lyric-line.active .lyric-en {
   color: var(--accent-1);
 }
 
-.lyric-translation {
-  font-size: 12px;
-  line-height: 1.35;
-  margin-top: 4px;
+.lyric-zh {
+  flex: 2;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.45;
   color: var(--ink-2);
   font-weight: 500;
   letter-spacing: -0.012em;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  border-left: 1px solid var(--border);
+  padding-left: 12px;
 }
 
-.lyric-line.active .lyric-translation {
+.lyric-line.active .lyric-zh {
   color: var(--ink-1);
-  opacity: 0.86;
+  opacity: 0.9;
 }
 
 .like-and-support {
@@ -1392,14 +1403,16 @@ body::-webkit-scrollbar-thumb:hover,
   .lyric-line {
     padding: 4px 8px;
     border-radius: 10px;
+    gap: 8px;
   }
 
-  .lyric-text {
-    font-size: 17px;
+  .lyric-en {
+    font-size: 16px;
   }
 
-  .lyric-translation {
+  .lyric-zh {
     font-size: 12px;
+    padding-left: 8px;
   }
 }
 
