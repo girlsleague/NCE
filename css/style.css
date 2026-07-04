@@ -1439,6 +1439,523 @@ body::-webkit-scrollbar-thumb:hover,
   }
 }
 
+/* =========================================================================
+   精读百遍 — Reading Tracker
+   ========================================================================= */
+
+.reading-tracker {
+  margin: 6px 0;
+  padding: 12px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(255,255,255,0.78), rgba(255,247,235,0.64));
+  box-shadow: var(--shadow-sm);
+  transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  font-family: var(--font-sans);
+  flex-shrink: 0;
+}
+
+body.dark-theme .reading-tracker {
+  background: linear-gradient(135deg, rgba(28,35,42,0.88), rgba(23,30,36,0.78));
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+
+.reading-tracker.tracker-updated {
+  border-color: var(--accent-1);
+  box-shadow: 0 0 0 2px var(--accent-3), var(--shadow-sm);
+}
+
+.tracker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.tracker-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink-1);
+  letter-spacing: -0.01em;
+}
+
+.tracker-count {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.tracker-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tracker-progress-ring {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  position: relative;
+}
+
+.tracker-progress-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ring-bg {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 7;
+}
+
+.ring-fill {
+  fill: none;
+  stroke: var(--accent-1);
+  stroke-width: 7;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+body.dark-theme .ring-fill {
+  stroke: var(--accent-2);
+}
+
+.ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1;
+}
+
+.ring-number {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink-1);
+}
+
+.ring-label {
+  font-size: 10px;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+.tracker-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tracker-milestone {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent-3), transparent);
+  border: 1px solid var(--accent-strong);
+  width: fit-content;
+}
+
+.milestone-icon {
+  font-size: 14px;
+}
+
+.milestone-label {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--accent-1);
+}
+
+body.dark-theme .milestone-label {
+  color: var(--accent-2);
+}
+
+.tracker-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tracker-checkin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-1);
+  background: var(--accent-1);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+  flex-shrink: 0;
+  letter-spacing: 0.01em;
+}
+
+.tracker-checkin-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px var(--accent-strong);
+}
+
+.tracker-checkin-btn:active {
+  transform: scale(0.96);
+}
+
+.tracker-checkin-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.tracker-checkin-btn.completed {
+  background: var(--teal);
+  border-color: var(--teal);
+  opacity: 0.85;
+}
+
+.tracker-checkin-btn svg {
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.tracker-speech-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--teal);
+  background: transparent;
+  color: var(--teal);
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
+  flex-shrink: 0;
+}
+
+.tracker-speech-btn:hover {
+  background: var(--teal);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.tracker-speech-btn:active {
+  transform: scale(0.96);
+}
+
+.tracker-speech-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+  transform: none !important;
+  background: transparent !important;
+  color: var(--ink-3) !important;
+  border-color: var(--border) !important;
+}
+
+.tracker-speech-btn.completed {
+  background: var(--teal);
+  color: #fff;
+  border-color: var(--teal);
+  opacity: 0.8;
+}
+
+/* Toast 提示 */
+.tracker-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  color: #fff;
+  background: var(--ink-1);
+  box-shadow: var(--shadow-md);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+body.dark-theme .tracker-toast {
+  background: var(--paper-3);
+  color: var(--ink-1);
+}
+
+.tracker-toast-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.tracker-toast-milestone {
+  background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  color: #fff;
+  font-size: 15px;
+  padding: 14px 28px;
+}
+
+.tracker-toast-success {
+  background: var(--teal);
+  color: #fff;
+}
+
+/* 演讲考核模态框 */
+.speech-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(9, 10, 12, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.speech-modal.speech-modal-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.speech-modal-card {
+  position: relative;
+  width: min(92vw, 420px);
+  max-height: 85vh;
+  overflow-y: auto;
+  border-radius: 20px;
+  background: var(--glass-strong);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xl);
+  padding: 28px 24px 24px;
+  text-align: center;
+}
+
+.speech-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--paper-3);
+  color: var(--ink-2);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.speech-close-btn:hover {
+  color: var(--ink-1);
+  border-color: var(--accent-1);
+}
+
+.speech-modal-card h3 {
+  font-size: 22px;
+  font-family: var(--font-display);
+  color: var(--ink-1);
+  margin-bottom: 6px;
+}
+
+.speech-subtitle {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+
+.speech-subtitle strong {
+  color: var(--accent-1);
+  font-weight: 700;
+}
+
+.speech-criteria {
+  text-align: left;
+  margin-bottom: 18px;
+}
+
+.speech-criterion {
+  background: var(--paper-2);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+}
+
+.speech-criterion h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-1);
+  margin-bottom: 8px;
+}
+
+.speech-criterion ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.speech-criterion li {
+  font-size: 13px;
+  color: var(--ink-2);
+  padding: 4px 0;
+  padding-left: 20px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.speech-criterion li::before {
+  content: '•';
+  position: absolute;
+  left: 4px;
+  color: var(--accent-1);
+  font-weight: 700;
+}
+
+.speech-form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-1);
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.speech-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.speech-option {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border);
+  background: var(--paper-2);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.speech-option:hover {
+  border-color: var(--accent-1);
+  background: var(--accent-3);
+}
+
+.speech-option input[type="radio"] {
+  display: none;
+}
+
+.speech-option:has(input:checked) {
+  border-color: var(--accent-1);
+  background: var(--accent-3);
+}
+
+.speech-option-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.option-icon {
+  font-size: 18px;
+}
+
+.option-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-1);
+}
+
+.speech-submit-btn {
+  width: 100%;
+  height: 42px;
+  border-radius: 999px;
+  border: none;
+  background: var(--accent-1);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.speech-submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px var(--accent-strong);
+}
+
+.speech-submit-btn:active {
+  transform: scale(0.97);
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .reading-tracker {
+    padding: 10px 12px;
+    margin: 4px 0;
+  }
+
+  .tracker-progress-ring {
+    width: 52px;
+    height: 52px;
+  }
+
+  .ring-number {
+    font-size: 15px;
+  }
+
+  .tracker-title {
+    font-size: 13px;
+  }
+
+  .tracker-checkin-btn,
+  .tracker-speech-btn {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .speech-modal-card {
+    padding: 22px 16px 18px;
+  }
+
+  .speech-modal-card h3 {
+    font-size: 18px;
+  }
+
+  .tracker-toast {
+    bottom: 60px;
+    font-size: 12px;
+    padding: 10px 18px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

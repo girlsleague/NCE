@@ -24,6 +24,29 @@ export const CONFIG = {
   // 可用的播放速率列表
   AVAILABLE_SPEEDS: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0],
 
+  // ===== 精读百遍功能配置 =====
+  READING_TRACKER: {
+    // 目标次数
+    TARGET_COUNT: 100,
+    // 演讲考核解锁次数
+    SPEECH_UNLOCK_THRESHOLD: 60,
+    // 里程碑定义（次数 → 标签/图标）
+    MILESTONES: {
+      10: { label: '初识', icon: '🌱', message: '好的开始！继续加油！' },
+      30: { label: '渐熟', icon: '🔥', message: '渐入佳境，坚持就是胜利！' },
+      60: { label: '精熟', icon: '⭐', message: '已达演讲考核标准！' },
+      100: { label: '百遍', icon: '🏆', message: '🎉 恭喜完成百遍精读！' },
+    },
+    // 打卡完成提示语
+    CHEER_MESSAGES: [
+      '打卡成功！继续精进 💪',
+      '又进了一步！坚持就是胜利 ✊',
+      '很棒！距离目标又近了一步 🎯',
+      '日积月累，终成大器 📚',
+      '一分耕耘一分收获 🌾',
+    ],
+  },
+
   // 翻译显示模式枚举
   TRANSLATION_MODES: ['show', 'hide', 'blur'],
 

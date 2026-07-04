@@ -8,6 +8,7 @@
 import { ReadingSystem } from './ReadingSystem.js';
 import { ThemeManager } from './ui/theme.js';
 import { SupportModal } from './ui/modal.js';
+import { ReadingTracker } from './features/ReadingTracker.js';
 
 /**
  * 应用主类
@@ -35,18 +36,30 @@ class NCEPlayer {
       // 初始化核心阅读系统
       const readingSystem = new ReadingSystem();
 
+      // 初始化精读百遍功能（等阅读系统初始化完毕后再初始化）
+      const readingTracker = new ReadingTracker(readingSystem);
+      const initTracker = () => {
+        if (readingSystem.state && readingSystem.state.bookKey) {
+          readingTracker.init();
+        } else {
+          setTimeout(initTracker, 300);
+        }
+      };
+      setTimeout(initTracker, 500);
+
       // 暴露到全局作用域，方便调试
       if (window.__DEV__) {
         window.readingSystem = readingSystem;
         window.themeManager = themeManager;
         window.supportModal = supportModal;
+        window.readingTracker = readingTracker;
         console.log('NCE Player initialized. [DEV MODE]');
-        console.log('Access: window.readingSystem, window.themeManager, window.supportModal');
+        console.log('Access: window.readingSystem, window.themeManager, window.supportModal, window.readingTracker');
       } else {
         console.log('NCE Player initialized.');
       }
 
-      return { readingSystem, themeManager, supportModal };
+      return { readingSystem, themeManager, supportModal, readingTracker };
     } catch (error) {
       console.error('Failed to initialize NCE Player:', error);
       document.body.innerHTML =
